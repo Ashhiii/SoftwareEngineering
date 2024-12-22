@@ -1,28 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, Image, Text, TouchableOpacity, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location'; 
+import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import worldImage from '../../assets/world.png';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { supabase } from '../../DataBase/SupaBase';  // Make sure to import your Supabase client
 
 const ReportingTool = ({ navigation }) => {
   const [text, setText] = useState('');
   const [images, setImages] = useState([]);
   const [cameraPermission, setCameraPermission] = useState(null);
-  const [location, setLocation] = useState(null); 
+  const [location, setLocation] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+  console.log(text)
+  console.log(location)
+  console.log(images)
+  console.log(userId)
+
 
   useEffect(() => {
     (async () => {
+      // Requesting permissions
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       setCameraPermission(status === 'granted');
-      
+
       const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
       if (locationStatus !== 'granted') {
         alert('Permission to access location was denied');
       } else {
         const userLocation = await Location.getCurrentPositionAsync({});
         setLocation(userLocation.coords);
+      }
+
+      // Check the user session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUserId(session.user.id);  // Get userId from session
+      } else {
+        alert('User is not logged in');
       }
     })();
   }, []);
@@ -57,17 +74,65 @@ const ReportingTool = ({ navigation }) => {
     }
   };
 
-  const submitReport = () => {
-    if (!text || images.length === 0 || !location) {
-      alert('Please add a description, images, and location before submitting.');
+  // Function to convert image to base64
+  const convertToBase64 = async (uri) => {
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  
+  const uploadImages = async () => {
+    const uploadedImages = [];
+
+    for (const uri of images) {
+      const base64Image = await convertToBase64(uri);
+      uploadedImages.push(base64Image); 
+    }
+
+    return uploadedImages;
+  };
+
+  const submitReport = async () => {
+    if (!text || images.length === 0 || !location || !userId) {
+      alert('Please add a description, images, location, and make sure you are logged in.');
       return;
     }
 
-    Alert.alert('Report Submitted', 'Your report has been marked on the map.', [
+    // tag upload img
+    const uploadedImages = await uploadImages();
+
+    // taga insert
+    const { data, error } = await supabase
+      .from('report')  
+      .insert([{
+        description: text,
+        report_image: uploadedImages.join(','),  
+        location: JSON.stringify(location),  
+        user_id: userId,  
+        created_at: new Date(),
+      }]);
+
+    if (error) {
+      console.error('Error submitting report:', error);
+      alert('Error submitting the report. Please try again.');
+      return;
+    }
+
+    Alert.alert('Report Submitted', 'Your report has been successfully submitted.', [
       {
         text: 'OK',
         onPress: () => {
-          navigation.navigate('Location', { reportedLocation: location, reportedImages: images });
+          navigation.navigate('Location', {
+            reportedLocation: location,
+            reportedImages: uploadedImages,
+          });
         },
       },
     ]);
@@ -82,10 +147,9 @@ const ReportingTool = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={80}
     >
-
-<View style={styles.backButtonContainer}>
+      <View style={styles.backButtonContainer}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={30} color="black" /> 
+          <Icon name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
       </View>
 
@@ -122,11 +186,7 @@ const ReportingTool = ({ navigation }) => {
         <Button title="Submit Report" onPress={submitReport} color="#007BFF" />
       </View>
 
-      <Image
-        source={worldImage}
-        style={styles.cornerImage}
-        resizeMode="cover"
-      />
+      <Image source={worldImage} style={styles.cornerImage} resizeMode="cover" />
     </KeyboardAvoidingView>
   );
 };

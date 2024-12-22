@@ -25,6 +25,8 @@ import ReportDetails from './src/AdminPage/ReportDetails';
 import AdminLogin from './src/AdminPage/AdminLogin';
 import AdminDashboard from './src/AdminPage/AdminDashboard';
 import WelcomeScreen from './src/AdminPage/WelcomeScreen';
+import ManageUsers from './src/AdminPage/ManageUsers';
+import userDetails from './src/AdminPage/ManageUsers/userDetails';
 
 import Settings from './src/Settings/SettingsScreen';
 import MyAccount from './src/Settings/MyAccount';
@@ -87,6 +89,8 @@ import About from './src/Settings/About';
             <Stack.Screen name="ReportDetails" component={ReportDetails} options={{ title: 'Report Details' }}/>
             <Stack.Screen name="AdminLogin" component={AdminLogin} />
             <Stack.Screen name="AdminDashboard" component={AdminDashboard}/>
+            <Stack.Screen name="ManageUsers" component={ManageUsers}/>
+            <Stack.Screen name="userDetails" component={userDetails}/>
             <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
             <Stack.Screen name="MyAccount" component={MyAccount} options={{ title: 'My Account' }} />
             <Stack.Screen name="NotificationSettings" component={Notifications} options={{ title: 'Notifications' }} />

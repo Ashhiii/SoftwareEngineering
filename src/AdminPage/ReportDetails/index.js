@@ -1,158 +1,246 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Image, Button, Alert, StyleSheet, ScrollView } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image, SafeAreaView, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { supabase } from '../../DataBase/SupaBase'; // Import your Supabase client
 
-const ReportDetails = ({ route, navigation }) => {
-  const { report } = route.params;
-  const [newComment, setNewComment] = useState('');
-  const [comments, setComments] = useState(report.comments || []);
-  const [visibility, setVisibility] = useState(report.visibility || 'private');
+const ReportList = () => {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      const updatedComments = [...comments, newComment.trim()];
-      setComments(updatedComments);
-      Alert.alert('Comment Added', 'Your comment has been posted.');
-      setNewComment('');
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('report')
+        .select(`
+          report_id, 
+          created_at, 
+          description, 
+          user_id, 
+          report_image, 
+          users(first_name, last_name, profile_picture, email)
+        `);
+  
+      if (error) {
+        throw new Error(error.message); // Throw an error if the query fails
+      }
+  
+      setReports(data); // Set the reports if data is returned
+    } catch (error) {
+      console.error('Error fetching reports:', error.message);
+      Alert.alert('Error', 'Failed to fetch reports.');
+    } finally {
+      setLoading(false); // Set loading to false after the fetch is complete
     }
   };
+  
+  
 
-  const handleToggleVisibility = () => {
-    const newVisibility = visibility === 'public' ? 'private' : 'public';
-    setVisibility(newVisibility);
-    Alert.alert('Visibility Updated', `This report is now ${newVisibility}.`);
-  };
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <Text style={styles.headerText}>Reports</Text>
+    </View>
+  );
 
-  const handleApprove = () => {
-    Alert.alert('Report Approved', 'The report has been approved.');
-    navigation.goBack();
-  };
+  const renderReportItem = ({ item }) => (
+    <TouchableOpacity
+  style={styles.reportItem}
+  onPress={() => navigation.navigate('ReportDetails', { report: item })}
+>
+  <View style={styles.reportInfoContainer}>
+    {/* Report Information Section */}
+    <View style={styles.reportHeader}>
+      <Text style={styles.reportTitle}>Report No: {item.report_id}</Text>
+      <Text style={styles.reportDate}>
+        {new Date(item.created_at).toLocaleDateString()}
+      </Text>
+    </View>
+    <Text style={styles.reportDescription}>{item.description}</Text>
 
-  const handleReject = () => {
-    Alert.alert('Report Rejected', 'The report has been rejected.');
-    navigation.goBack();
-  };
+    {/* Report Image */}
+    {item.report_image ? (
+      <Image
+        source={{ uri: item.report_image }}
+        style={styles.reportImage}
+      />
+    ) : (
+      <Text style={styles.noImageText}>No image available</Text>
+    )}
+  </View>
+
+  {/* Separator */}
+  <View style={styles.separator} />
+
+  {/* Reporter Information Section */}
+  <View style={styles.reporterInfo}>
+  <View style={styles.reporterInfoColumn}>
+    <Text style={styles.reporterName}>
+      Reporter: {item.users.first_name} {item.users.last_name}
+    </Text>
+  </View>
+  <View style={styles.reporterInfoRow}>
+    <View style={styles.reporterLeftSide}>
+      <Text style={styles.reporterEmail}>Email: {item.users.email}</Text>
+    </View>
+    <View style={styles.reporterRightSide}>
+      {item.users.profile_picture && (
+        <Image
+          source={{ uri: item.users.profile_picture }}
+          style={styles.reporterImage}
+        />
+      )}
+    </View>
+  </View>
+</View>
+
+</TouchableOpacity>
+
+  );
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loadingText}>Loading reports...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Report Details</Text>
-      <Text style={styles.description}>Description: {report.title}</Text>
-      <Image source={{ uri: report.image }} style={styles.image} />
-
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: report.location?.latitude || 0,
-          longitude: report.location?.longitude || 0,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}
-      >
-        {report.location && (
-          <Marker coordinate={report.location} title="Reported Location" />
-        )}
-      </MapView>
-
-      <View style={styles.buttonContainer}>
-        <Button title="Approve" onPress={handleApprove} color="green" />
-        <Button title="Reject" onPress={handleReject} color="red" />
-      </View>
-
-      <View style={styles.visibilityContainer}>
-        <Button
-          title={visibility === 'public' ? 'Make Private' : 'Make Public'}
-          onPress={handleToggleVisibility}
-          color={visibility === 'public' ? 'orange' : 'blue'}
-        />
-      </View>
-
-      {visibility === 'public' && (
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsHeader}>Comments:</Text>
-          <ScrollView style={styles.commentsList}>
-            {comments.map((comment, index) => (
-              <Text key={index} style={styles.commentText}>
-                - {comment}
-              </Text>
-            ))}
-          </ScrollView>
-
-          <View style={styles.commentInputContainer}>
-            <TextInput
-              placeholder="Write a comment..."
-              style={styles.input}
-              value={newComment}
-              onChangeText={setNewComment}
-            />
-            <Button title="Add Comment" onPress={handleAddComment} color="green" />
-          </View>
-        </View>
-      )}
-    </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        ListHeaderComponent={renderHeader}
+        data={reports}
+        keyExtractor={(item) => item.report_id.toString()}
+        renderItem={renderReportItem}
+        ListEmptyComponent={<Text style={styles.emptyText}>No reports found.</Text>}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
-    padding: 20,
+    flex: 1,
     backgroundColor: '#f4f4f4',
-    bottom: 150,
+    padding: 20,
   },
   header: {
-    fontSize: 24,
+    marginBottom: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginBottom: 15,
+  },
+  headerText: {
+    fontSize: 28,
     fontWeight: 'bold',
-    top: 180,
+    color: '#333',
+    textAlign: 'center',
   },
-  description: {
+  loadingText: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#888',
+  },
+  emptyText: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#888',
+  },
+  reportItem: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 8,
+    marginBottom: 15,
+    marginHorizontal: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  reportInfoContainer: {
+    marginBottom: 15,
+  },
+  reportHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  reportTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  reportDate: {
+    fontSize: 14,
+    color: '#888',
+  },
+  reportDescription: {
     fontSize: 16,
-    marginVertical: 10,
-    top: 180,
-
+    color: '#333',
+    marginBottom: 10,
   },
-  image: {
+  reportImage: {
     width: '100%',
     height: 200,
-    marginBottom: 20,
+    borderRadius: 8,
+    marginTop: 10,
+    resizeMode: 'cover',
   },
-  map: {
-    width: '100%',
-    height: 300,
-    marginBottom: 20,
+  noImageText: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 10,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
+  separator: {
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 15,
   },
-  visibilityContainer: {
-    marginBottom: 20,
+  reporterInfo: {
+    marginTop: 10,
+    alignItems: 'flex-start',
+    paddingHorizontal: 5,
   },
-  commentsSection: {
-    flex: 1,
-    marginTop: 20,
+  reporterInfoColumn: {
+    marginBottom: 8,
   },
-  commentsHeader: {
+  reporterName: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 10,
+    color: '#333',
   },
-  commentsList: {
-    maxHeight: 200, // Set a fixed height for the scrollable comments
-    marginBottom: 10,
-  },
-  commentText: {
-    marginBottom: 5,
-  },
-  commentInputContainer: {
-    flexDirection: 'column',
+  reporterInfoRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 5,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 10,
+  reporterLeftSide: {
+    flex: 1,
+    marginRight: 10,
+  },
+  reporterEmail: {
+    fontSize: 14,
+    color: '#555',
+  },
+  reporterRightSide: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reporterImage: {
+    width: 45,
+    height: 45,
+    borderRadius: 20,
+    aspectRatio:1,
   },
 });
 
-export default ReportDetails;
+export default ReportList;

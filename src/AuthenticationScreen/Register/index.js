@@ -3,9 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { auth } from '../../../src/DataBase/Firebase';
-import { supabase } from '../../../src/DataBase/SupaBase'; 
+import { supabase } from '../../../src/DataBase/SupaBase';  // Already importing Supabase
 
 const Register = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -21,50 +19,62 @@ const Register = ({ navigation }) => {
     confirmPassword: '',
   });
 
-const handleRegister = async () => {
-  const { firstName, lastName, email, phone, gender, birthDate, password, confirmPassword } = formData;
-
-  if (password !== confirmPassword) {
-    Alert.alert('Error', 'Passwords do not match');
-    return;
-  }
-
-  try {
-    //Create a new user in Firebase
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    //Send email verification
-    await sendEmailVerification(user);
-
-    //Notify the user to check their email
-    Alert.alert(
-      "Verify Your Email",
-      "Registration successful! Please check your email to verify your account.",
-      [{ text: "OK", onPress: () => navigation.navigate("Login") }]
-    );
-
-    //Save additional user info in Supabase
-    const { error: dbError } = await supabase.from('users').insert([{
-      first_name: firstName,
-      last_name: lastName,
-      phone_number: phone,
-      email,
-      gender,
-      date_of_birth: birthDate.toISOString(),
-    }]);
-
-    if (dbError) {
-      console.error("Database error:", dbError);
-      Alert.alert("Database Error", dbError.message);
+  const handleRegister = async () => {
+    const { firstName, lastName, email, phone, gender, birthDate, password, confirmPassword } = formData;
+  
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
       return;
     }
-  } catch (error) {
-    console.error("Error during registration:", error);
-    Alert.alert("Registration Error", error.message);
-  }
-};
+  
+    try {
+      // Step 1: Create a new user in Supabase Authentication
+      const { user, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
+      console.log('authError:', authError); // Log detailed error message
+      console.log("User object from Supabase: ", user);
 
+      // Step 2: Check if authentication failed
+      if (authError) {
+        throw new Error(authError.message);
+      }
+  
+      // Step 3: Ensure the user object exists and user.id is available
+      if (!user || !user.id) {
+        throw new Error("User ID is undefined after registration.");
+      }
+  
+      // Step 4: Insert user info into the 'users' table with the correct auth_user_id
+      const { data, dbError } = await supabase.from('users').insert([{
+        auth_user_id: user.id,  // Correctly passing the user.id as auth_user_id
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phone,
+        email: email,
+        gender: gender,
+        date_of_birth: birthDate.toISOString(),
+      }]);
+  
+      // Step 5: Handle database errors
+      if (dbError) {
+        throw new Error(dbError.message);
+      }
+  
+      // Step 6: Notify the user and navigate to the login page
+      Alert.alert(
+        "Verify Your Email",
+        "Registration successful! Please check your email to verify your account.",
+        [{ text: "OK", onPress: () => navigation.navigate("Login") }]
+      );
+  
+    } catch (error) {
+      console.error("Error during registration:", error);
+      Alert.alert("Registration Error", error.message);
+    }
+  };
+  
 
   const handleNext = () => {
     const { firstName, lastName, email, phone, gender, password, confirmPassword } = formData;
@@ -159,7 +169,7 @@ const handleRegister = async () => {
               <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateInput}>
                 <Text style={{ color: 'white' }}>{formData.birthDate.toLocaleDateString()}</Text>
                 <Icon name="calendar" size={20} color="white" style={styles.dateIcon} />
-                </TouchableOpacity>
+              </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
                   value={formData.birthDate}
@@ -173,7 +183,7 @@ const handleRegister = async () => {
             </View>
             <Picker
               selectedValue={formData.gender}
-              style={styles.input}
+              style={styles.genderinput}
               onValueChange={(value) => setFormData({ ...formData, gender: value })}>
               <Picker.Item label="Select Gender" value="" />
               <Picker.Item label="Male" value="male" />
@@ -349,26 +359,24 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   datePickerContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row', 
     alignItems: 'center',
-    borderColor: 'white',
-    borderWidth: 2,
-    borderRadius: 10,
-    width: 280,
-    backgroundColor: 'rgba(255, 255, 255, 0.13)',
-    marginBottom: 20,
-    paddingHorizontal: 10,
   },
   dateInput: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 50,
-    justifyContent: 'space-between', 
+    backgroundColor: 'rgba(255, 255, 255, 0.13)',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 20,
+    marginRight: 20,
+    width: 240,
   },
-  dateIcon: {
-    marginLeft: 150, 
+  genderinput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.13)',
+    marginBottom: 20,
+    borderRadius: 10,
   },
 });
-
 
 export default Register;

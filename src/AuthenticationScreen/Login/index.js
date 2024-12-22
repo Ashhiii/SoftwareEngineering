@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Image, Alert, Keyboard, ActivityIndicator } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../../../src/DataBase/Firebase'; 
+import { supabase } from '../../DataBase/SupaBase'; // Import the supabase client
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -10,44 +9,42 @@ export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const trimmedEmail = email.trim();
+  const trimmedPassword = password.trim();
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Missing Information", "Please enter both email and password.");
       return;
     }
-  
+
     setLoading(true);
     Keyboard.dismiss();
-  
+
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-  
-      await user.reload();
-  
-      if (!user.emailVerified) {
-        Alert.alert(
-          "Email Not Verified",
-          "Please verify your email before logging in.",
-          [{ text: "OK" }]
-        );
-  
-        const interval = setInterval(async () => {
-          await user.reload();
-          if (auth.currentUser?.emailVerified) {
-            clearInterval(interval);
-            Alert.alert("Email Verified", "Your email is verified. Redirecting...");
-            navigation.navigate("Home");
-          }
-        }, 3000); 
-  
-        setLoading(false);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password: trimmedPassword,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Check if user exists and verify email status
+      const user = data?.user;
+
+      if (!user) {
+        Alert.alert("Login Error", "No user found.");
         return;
       }
-  
+
+      
+
+      // User is authenticated and email is verified, proceed to home
       navigation.navigate("Home");
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error:", error.message);
       Alert.alert("Login Error", error.message);
     } finally {
       setLoading(false);
@@ -61,10 +58,13 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-      await sendPasswordResetEmail(auth, email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        throw error;
+      }
       Alert.alert("Password Reset", "A password reset email has been sent to your email address.");
     } catch (error) {
-      console.error("Forgot password error:", error);
+      console.error("Forgot password error:", error.message);
       Alert.alert("Error", "Failed to send password reset email. Please try again.");
     }
   };
@@ -76,7 +76,7 @@ export default function LoginScreen({ navigation }) {
 
         {/* Email input */}
         <TextInput
-          placeholder="Email or Phone"
+          placeholder="Email"
           style={styles.input}
           placeholderTextColor="#e5e5e5"
           value={email}
