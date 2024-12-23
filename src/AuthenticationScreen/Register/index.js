@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { supabase } from '../../../src/DataBase/SupaBase';  // Already importing Supabase
+import { supabase } from '../../../src/DataBase/SupaBase';
 
 const Register = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -26,54 +26,72 @@ const Register = ({ navigation }) => {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
+    console.log('Form Data:', formData);
   
     try {
-      // Step 1: Create a new user in Supabase Authentication
-      const { user, error: authError } = await supabase.auth.signUp({
+      // Step 1: Sign up user using Supabase auth
+      const { data: user, error: authError } = await supabase.auth.signUp({
         email: email,
         password: password,
       });
-      console.log('authError:', authError); // Log detailed error message
-      console.log("User object from Supabase: ", user);
-
-      // Step 2: Check if authentication failed
+  
       if (authError) {
         throw new Error(authError.message);
       }
   
-      // Step 3: Ensure the user object exists and user.id is available
-      if (!user || !user.id) {
-        throw new Error("User ID is undefined after registration.");
+      if (!user || !user.user) {
+        throw new Error("Unable to retrieve user details after registration.");
       }
   
-      // Step 4: Insert user info into the 'users' table with the correct auth_user_id
-      const { data, dbError } = await supabase.from('users').insert([{
-        auth_user_id: user.id,  // Correctly passing the user.id as auth_user_id
-        first_name: firstName,
-        last_name: lastName,
-        phone_number: phone,
-        email: email,
-        gender: gender,
-        date_of_birth: birthDate.toISOString(),
-      }]);
+      // Log the user id for debugging
+      console.log('User ID from Auth:', user.user.id);  // Log the user ID here
   
-      // Step 5: Handle database errors
+      // Step 2: Check if the user already exists in the 'users' table
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('auth_user_id')
+        .eq('auth_user_id', user.user.id)
+        .single();
+  
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw new Error(checkError.message);
+      }
+  
+      // Step 3: If the user already exists, throw an error
+      if (existingUser) {
+        throw new Error("User already exists.");
+      }
+  
+      // Step 4: Insert user data into the 'users' table
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert({
+          auth_user_id: user.user.id, // Use the Supabase UID (UUID)
+          first_name: firstName,
+          last_name: lastName,
+          phone_number: phone,
+          email: email,
+          gender: gender,
+          date_of_birth: birthDate.toISOString(),
+          password: password, // Assuming password is stored as plain text (or handle hashing here)
+        });
+  
       if (dbError) {
         throw new Error(dbError.message);
       }
   
-      // Step 6: Notify the user and navigate to the login page
+      // Step 5: Successful registration message
       Alert.alert(
         "Verify Your Email",
         "Registration successful! Please check your email to verify your account.",
         [{ text: "OK", onPress: () => navigation.navigate("Login") }]
       );
-  
     } catch (error) {
       console.error("Error during registration:", error);
       Alert.alert("Registration Error", error.message);
     }
   };
+  
   
 
   const handleNext = () => {

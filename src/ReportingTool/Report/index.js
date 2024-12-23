@@ -5,7 +5,7 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import worldImage from '../../assets/world.png';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { supabase } from '../../DataBase/SupaBase';  // Make sure to import your Supabase client
+import { supabase } from '../../DataBase/SupaBase';  
 
 const ReportingTool = ({ navigation }) => {
   const [text, setText] = useState('');
@@ -22,7 +22,6 @@ const ReportingTool = ({ navigation }) => {
 
   useEffect(() => {
     (async () => {
-      // Requesting permissions
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       setCameraPermission(status === 'granted');
 
@@ -34,10 +33,9 @@ const ReportingTool = ({ navigation }) => {
         setLocation(userLocation.coords);
       }
 
-      // Check the user session
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        setUserId(session.user.id);  // Get userId from session
+        setUserId(session.user.id);  
       } else {
         alert('User is not logged in');
       }
@@ -74,7 +72,7 @@ const ReportingTool = ({ navigation }) => {
     }
   };
 
-  // Function to convert image to base64
+  // Function to convert image
   const convertToBase64 = async (uri) => {
     const response = await fetch(uri);
     const blob = await response.blob();
@@ -105,7 +103,7 @@ const ReportingTool = ({ navigation }) => {
       return;
     }
 
-    // tag upload img
+      // tag upload img
     const uploadedImages = await uploadImages();
 
     // taga insert

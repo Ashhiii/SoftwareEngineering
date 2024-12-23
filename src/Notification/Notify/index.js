@@ -1,143 +1,149 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Dimensions, ImageBackground, TouchableOpacity } from 'react-native';
-import { Icon } from 'react-native-elements';
-import { Video } from 'expo-av';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { supabase } from '../../DataBase/SupaBase'; 
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
-const initialNotifications = [
-  { id: '1', action: 'Reminder: Garbage collection scheduled for today. Please take your bins out.', time: '2m', read: false },
-  { id: '2', action: 'Alert: Poor air quality detected in your area. Limit outdoor activities.', time: '5m', read: false },
-  { id: '3', action: 'Reminder: Avoid cutting down trees. Support reforestation efforts.', time: '15m', read: false },
-  { id: '4', action: 'Reminder: Recycling pickup is tomorrow. Separate plastics and paper.', time: '1h', read: false },
-  { id: '5', action: 'Alert: Forested area nearby marked for illegal logging. Report any activities.', time: '3h', read: false },
-];
+const NotificationsScreen = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
 
-const NotificationSettings = ({ navigation }) => {
-  const [notifications, setNotifications] = useState(initialNotifications);
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        // Fetch the session to get the user id
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          setUserId(session.user.id);
+          console.log('User ID from session:', session.user.id);
 
-  const toggleReadStatus = (id) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notification) =>
-        notification.id === id ? { ...notification, read: !notification.read } : notification
-      )
-    );
+          // Fetch notifications for the logged-in user
+          await fetchUserNotifications(session.user.id); 
+        } else {
+          Alert.alert('Error', 'User is not logged in');
+          console.log('User not logged in');
+        }
+      } catch (error) {
+        console.error('Error initializing notifications:', error);
+        Alert.alert('Error', 'An error occurred while loading notifications.');
+      }
+    };
+
+    initialize();
+  }, []);
+
+  const fetchUserNotifications = async (userId) => {
+    try {
+      if (!userId) {
+        throw new Error('User ID is undefined.');
+      }
+      
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setNotifications(data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error.message);
+      Alert.alert('Error', 'Unable to fetch notifications.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => toggleReadStatus(item.id)} style={styles.touchable}>
-      <View style={[styles.notificationBox, item.read && styles.readBox]}>
-        <Icon
-          name="warning"
-          type="material"
-          color={item.read ? '#aaa' : '#f50'}
-          size={30}
-        />
-        <View style={styles.notificationContent}>
-          <Text style={styles.action}>{item.action}</Text>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderNotificationItem = ({ item }) => (
+    <View style={styles.notificationItem}>
+      <Text style={styles.message}>{item.message}</Text>
+      <Text style={styles.timestamp}>
+        {new Date(item.created_at).toLocaleString()}
+      </Text>
+    </View>
+  );  
+  
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loadingText}>Loading notifications...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.videoContainer}>
-        <Video
-          source={require('../../../src/assets/notifvideo.mp4')}
-          style={styles.video}
-          resizeMode="cover"
-          isLooping
-          shouldPlay
-        />
-      </View>
-
-      <View style={styles.backButtonContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-back" size={30} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      <ImageBackground
-        source={require('../../assets/world.png')}
-        style={styles.container}
-        imageStyle={styles.image}
-      >
-      <FlatList
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.header}>Notifications</Text>
+      {notifications.length > 0 ? (
+        <FlatList
         data={notifications}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.notificationList}
+        keyExtractor={(item, index) => item.id ? item.id.toString() : `fallback-${index}`}
+        renderItem={renderNotificationItem}
       />
-          </ImageBackground>
-
-    </View>
-    
+      ) : (
+        <Text style={styles.emptyText}>No notifications available.</Text>
+      )}
+    </SafeAreaView>
+  
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f4f4f4',
+    padding: 20,
+  },
+  header: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    textAlign: 'center',
+    marginBottom: 50,
+    top: 20
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  notificationItem: {
     backgroundColor: '#fff',
-  },
-  videoContainer: {
-    width: '100%',
-    height: Dimensions.get('window').height * 0.3,
-    marginBottom: 20,
-  },
-  video: {
-    width: '100%',
-    height: '100%',
-  },
-  notificationList: {
-    paddingBottom: 160,
-  },
-  touchable: {
-    marginBottom: 10,
-  },
-  notificationBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(128, 128, 128, 0.7)',
-    borderRadius: 10,
     padding: 15,
+    marginBottom: 10,
+    marginHorizontal: 15,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
-  readBox: {
-    backgroundColor: 'rgba(128, 128, 128, 0.3)',
-  },
-  notificationContent: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  action: {
+  message: {
     fontSize: 16,
     color: '#333',
+    marginBottom: 5,
+    fontWeight: 'bold'
   },
-  time: {
+  timestamp: {
     fontSize: 12,
-    color: 'black',
+    color: '#888',
     textAlign: 'right',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
-  image: {
-    borderRadius: 10,
-    width: 360,
-    height: 300,
-    top: 250,
-    left: 0,
-  },
-  backButtonContainer: {
-    position: 'absolute',
-    top: 30,
-    left: 10,
-    zIndex: 2,
-  },
-  backButton: {
-    padding: 10,
-    borderRadius: 50,
   },
 });
 
-export default NotificationSettings;
+export default NotificationsScreen;

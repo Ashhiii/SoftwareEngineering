@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Image, Alert, Keyboard, ActivityIndicator } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { supabase } from '../../DataBase/SupaBase'; // Import the supabase client
+import { supabase } from '../../DataBase/SupaBase'; 
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -30,8 +32,6 @@ export default function LoginScreen({ navigation }) {
       if (error) {
         throw error;
       }
-
-      // Check if user exists and verify email status
       const user = data?.user;
 
       if (!user) {
@@ -41,7 +41,7 @@ export default function LoginScreen({ navigation }) {
 
       
 
-      // User is authenticated and email is verified, proceed to home
+      // Proceed to home
       navigation.navigate("Home");
     } catch (error) {
       console.error("Login error:", error.message);
@@ -70,7 +70,13 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
+
+
     <ImageBackground source={require('../../../src/assets/2.png')} style={styles.background}>
+      <TouchableOpacity style={styles.adminIcon} onPress={() => navigation.navigate('AdminLogin')}
+    >
+        <MaterialCommunityIcons name='account-cog-outline' size={30} color='white' />
+    </TouchableOpacity>
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
 
@@ -123,7 +129,7 @@ export default function LoginScreen({ navigation }) {
           )}
         </TouchableOpacity>
 
-        {/* Don't have an account? Sign up */}
+        {/* Sign up */}
         <TouchableOpacity
           style={styles.registerLink}
           onPress={() => navigation.navigate('SignUp')}
@@ -159,6 +165,12 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     justifyContent: 'center',
+  },
+  adminIcon: {
+    position: 'absolute',
+    top: 40, 
+    left: 20, 
+    zIndex: 10,
   },
   container: {
     alignItems: 'center',

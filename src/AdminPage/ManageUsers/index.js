@@ -10,13 +10,12 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { supabase } from '../../DataBase/SupaBase'; // Ensure you have configured this file correctly.
+import { supabase } from '../../DataBase/SupaBase'; 
 
 const ManageUsers = ({ navigation }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch users from Supabase
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -28,7 +27,7 @@ const ManageUsers = ({ navigation }) => {
       if (error) {
         throw error;
       }
-      console.log('Fetched users:', data); // Log the fetched data
+      console.log('Fetched users:', data); 
       setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);

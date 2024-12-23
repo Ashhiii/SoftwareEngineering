@@ -14,6 +14,7 @@ import ReportingTool from './src/ReportingTool/Report';
 import Map from './src/Map/Location';
 import Notification from './src/Notification/Notify'; 
 
+
 import EnviroTipsScreen from './src/Components/IconGrid/index'; 
 import TreeScreen from './src/Components/TreeScreen'; 
 import RecycleScreen from './src/Components/RecycleScreen';

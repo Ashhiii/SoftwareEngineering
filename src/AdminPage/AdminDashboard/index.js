@@ -2,18 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, ActivityIndicator, SafeAreaView } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import supabase from '../../DataBase/SupaBase'; // import your supabase client
+import supabase from '../../DataBase/SupaBase'; 
 
 const AdminDashboard = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation(); // Get the navigation prop
+  const navigation = useNavigation(); 
+  const [count, setCount] = useState(0);
+  const [reportCount, setReportCount] = useState(0);
+  const [counts, setCounts] = useState({ pending: 0, approved: 0, rejected: 0 });
 
 
+
+  //navigator to report detail
   const handleReportPress = (reportId) => {
     navigation.navigate('ReportDetails', { reportId });
   };
-
+  //card renderer
   const renderInfoCard = (iconName, title, count, color) => (
     <View style={[styles.infoCard, { backgroundColor: color }]}>
       <Ionicons name={iconName} size={30} color="white" />
@@ -21,6 +26,79 @@ const AdminDashboard = () => {
       <Text style={styles.infoTitle}>{title}</Text>
     </View>
   );
+
+//Counter sa user/admin 
+  useEffect(() => {
+    const fetchCount = async () => {
+      const { count, error } = await supabase
+        .from('combined_users_admins') 
+        .select('*', { count: 'exact' }); 
+
+      if (error) {
+        console.error('Error fetching count:', error);
+      } else {
+        setCount(count);
+      }
+    };
+
+    fetchCount();
+  }, []);
+
+  useEffect(() => {
+    const fetchReportCount = async () => {
+      const { count, error } = await supabase
+        .from('report') // Replace 'report' with your actual table name
+        .select('*', { count: 'exact' }); // Use 'exact' for accurate row count
+
+      if (error) {
+        console.error('Error fetching report count:', error);
+      } else {
+        setReportCount(count);
+      }
+    };
+
+    fetchReportCount();
+  }, []);
+
+  useEffect(() => {
+    const fetchReportCounts = async () => {
+      try {
+        const { count: pendingCount, error: pendingError } = await supabase
+          .from('report')
+          .select('*', { count: 'exact' })
+          .is('status', null);
+
+        if (pendingError) throw pendingError;
+
+        // tig count sa approved reports 
+        const { count: approvedCount, error: approvedError } = await supabase
+          .from('report')
+          .select('*', { count: 'exact' })
+          .ilike('status', '%approve%');
+
+        if (approvedError) throw approvedError;
+
+        // tig count sa rejected reports 
+        const { count: rejectedCount, error: rejectedError } = await supabase
+          .from('report')
+          .select('*', { count: 'exact' })
+          .ilike('status', '%reject%');
+
+        if (rejectedError) throw rejectedError;
+
+        // count updater
+        setCounts({
+          pending: pendingCount || 0,
+          approved: approvedCount || 0,
+          rejected: rejectedCount || 0,
+        });
+      } catch (error) {
+        console.error('Error fetching report counts:', error);
+      }
+    };
+
+    fetchReportCounts();
+  }, []);
 
   const renderHeader = () => (
     <SafeAreaView>
@@ -36,19 +114,19 @@ const AdminDashboard = () => {
       <View style={styles.container}>
         <View style={styles.cardsContainer}>
           <TouchableOpacity>
-            {renderInfoCard('document-text-outline', 'Total Reports', 120, '#6a11cb')}
+            {renderInfoCard('document-text-outline', 'Total Reports ', reportCount, '#6a11cb')}
           </TouchableOpacity>
           <TouchableOpacity>
-            {renderInfoCard('time-outline', 'Pending Reports', 15, '#ffb347')}
+            {renderInfoCard('time-outline', 'Pending Reports', counts.pending, '#ffb347')}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('ManageUsers')}>
-            {renderInfoCard('people-outline', 'Manage Users', 50, '#2196f3')}
+            {renderInfoCard('people-outline', 'Manage Users', (count), '#2196f3')}
           </TouchableOpacity>
           <TouchableOpacity>
-            {renderInfoCard('checkmark-done-outline', 'Approved Reports', 95, '#43a047')}
+            {renderInfoCard('checkmark-done-outline', 'Approved Reports', counts.approved, '#43a047')}
           </TouchableOpacity>
           <TouchableOpacity>
-            {renderInfoCard('close-outline', 'Rejected Reports', 10, '#d32f2f')}
+            {renderInfoCard('close-outline', 'Rejected Reports', counts.rejected, '#d32f2f')}
           </TouchableOpacity>
         </View>
 
@@ -62,7 +140,7 @@ const AdminDashboard = () => {
     </SafeAreaView>
   );
 
-  // Fetch reports from Supabase
+  // report displays
   const fetchReports = async () => {
     try {
       setLoading(true);
