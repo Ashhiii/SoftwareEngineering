@@ -29,7 +29,7 @@ const Register = ({ navigation }) => {
     console.log('Form Data:', formData);
   
     try {
-      // Step 1: Sign up user using Supabase auth
+      // Step 1: e signup ang user sa supabase auth
       const { data: user, error: authError } = await supabase.auth.signUp({
         email: email,
         password: password,
@@ -43,10 +43,10 @@ const Register = ({ navigation }) => {
         throw new Error("Unable to retrieve user details after registration.");
       }
   
-      // Log the user id for debugging
+      //Check if available ang uid
       console.log('User ID from Auth:', user.user.id);  // Log the user ID here
   
-      // Step 2: Check if the user already exists in the 'users' table
+      // Step 2: Check if existing na ang user
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('auth_user_id')
@@ -57,7 +57,7 @@ const Register = ({ navigation }) => {
         throw new Error(checkError.message);
       }
   
-      // Step 3: If the user already exists, throw an error
+      // Step 3: If nanay account ang user, return error.
       if (existingUser) {
         throw new Error("User already exists.");
       }
@@ -66,14 +66,14 @@ const Register = ({ navigation }) => {
       const { error: dbError } = await supabase
         .from('users')
         .insert({
-          auth_user_id: user.user.id, // Use the Supabase UID (UUID)
+          auth_user_id: user.user.id, 
           first_name: firstName,
           last_name: lastName,
           phone_number: phone,
           email: email,
           gender: gender,
           date_of_birth: birthDate.toISOString(),
-          password: password, // Assuming password is stored as plain text (or handle hashing here)
+          password: password, 
         });
   
       if (dbError) {

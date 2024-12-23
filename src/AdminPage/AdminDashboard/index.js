@@ -27,7 +27,7 @@ const AdminDashboard = () => {
     </View>
   );
 
-//Counter sa user/admin 
+//tig count sa user/admin 
   useEffect(() => {
     const fetchCount = async () => {
       const { count, error } = await supabase

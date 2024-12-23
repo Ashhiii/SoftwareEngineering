@@ -40,9 +40,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 20, // Space between the image and the title
+    marginBottom: 20, 
     borderWidth: 2,
-    borderColor: 'skyblue', // Optional: add border to make it stand out
+    borderColor: 'skyblue', 
   },
   shapeTopLeft: {
     position: 'absolute',

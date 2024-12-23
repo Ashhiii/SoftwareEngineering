@@ -28,7 +28,7 @@ const ReportList = () => {
         `);
 
       if (error) {
-        throw new Error(error.message); // Throw an error if the query fails
+        throw new Error(error.message); 
       }
 
       setReports(data); 

@@ -11,14 +11,14 @@ const NotificationsScreen = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Fetch the session to get the user id
+        // get user id session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
           setUserId(session.user.id);
           console.log('User ID from session:', session.user.id);
 
-          // Fetch notifications for the logged-in user
+          // system fetch notif for the specific user
           await fetchUserNotifications(session.user.id); 
         } else {
           Alert.alert('Error', 'User is not logged in');
