@@ -12,7 +12,28 @@ const AdminDashboard = () => {
   const [reportCount, setReportCount] = useState(0);
   const [counts, setCounts] = useState({ pending: 0, approved: 0, rejected: 0 });
 
-
+    // Logout function
+    const handleLogout = () => {
+      Alert.alert(
+        'Logout Confirmation',
+        'Are you sure you want to logout?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Logout',
+            onPress: () => {
+              Alert.alert('Success', 'You have been logged out.');
+              navigation.navigate('Login');
+            },
+            style: 'destructive', // Optional: styles the button with red text on iOS
+          },
+        ],
+        { cancelable: true } // Allows tapping outside the alert to dismiss it
+      );
+    };
 
   //navigator to report detail
   const handleReportPress = (reportId) => {
@@ -100,15 +121,15 @@ const AdminDashboard = () => {
     fetchReportCounts();
   }, []);
 
-  const renderHeader = () => (
+ const renderHeader = () => (
     <SafeAreaView>
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => setIsLogoutVisible(!isLogoutVisible)}>
-            <Ionicons name="menu" size={30} color="white" style={{ marginRight: 10 }} />
-          </TouchableOpacity>
           <Text style={styles.headerText}>Welcome, Admin</Text>
         </View>
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="white" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.container}>
@@ -320,20 +341,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  logoutButton: {
-    position: 'absolute',
-    top: 100,
-    left: 20,
-    backgroundColor: '#6a11cb',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  logoutText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
   loadingContainer: {
     position: 'absolute',
     top: '50%',
@@ -347,12 +354,6 @@ const styles = StyleSheet.create({
     zIndex: 1000,  // Ensure it appears above other components
   },
   
-  loggingOutText: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#6a11cb',
-  },
   reportItem: {
     backgroundColor: '#fff',
     padding: 15,
@@ -379,6 +380,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#888',
     marginBottom: 5,
+  },
+  logoutButton: {
+    padding: 10,
+    left: 150,
   },
 });
 
