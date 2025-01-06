@@ -50,7 +50,7 @@ const SettingsCard = ({ navigation }) => {
     </View>
       
       <ImageBackground
-        source={require('../../assets/world.png')}
+        source={require('../../assets/world.jpg')}
         style={styles.container}
         imageStyle={styles.image}
       >

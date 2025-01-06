@@ -3,7 +3,7 @@ import { View, TextInput, Button, Image, Text, TouchableOpacity, ScrollView, Sty
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
-import worldImage from '../../assets/world.png';
+import worldImage from '../../assets/world.jpg';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { supabase } from '../../DataBase/SupaBase';  
 

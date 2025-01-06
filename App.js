@@ -65,7 +65,7 @@ import About from './src/Settings/About';
           >
             <Animated.View style={{ ...styles.splashContainer, opacity: fadeAnim }}>
               <Image
-                source={require('./src/assets/logo.png')}  
+                source={require('./src/assets/logo.jpg')}  
                 style={styles.logo}
               />
             </Animated.View>
@@ -106,7 +106,7 @@ import About from './src/Settings/About';
 
   const HomeScreenWithBackground = ({ navigation }) => (
     <ImageBackground
-      source={require('./src/assets/home.jpg')}
+      source={require('./src/assets/homes.jpg')}
       style={styles.background}
       resizeMode="cover"
     >
@@ -117,7 +117,7 @@ import About from './src/Settings/About';
 
   const EnviroTipsScreenWithBackground = ({ navigation }) => (
     <ImageBackground
-      source={require('./src/assets/background.jpg')}
+      source={require('./src/assets/bckground.jpg')}
       style={styles.background}
       resizeMode="cover"
     >

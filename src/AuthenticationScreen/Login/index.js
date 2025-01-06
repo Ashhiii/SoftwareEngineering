@@ -72,7 +72,7 @@ export default function LoginScreen({ navigation }) {
   return (
 
 
-    <ImageBackground source={require('../../../src/assets/2.png')} style={styles.background}>
+    <ImageBackground source={require('../../../src/assets/2.jpg')} style={styles.background}>
       <TouchableOpacity style={styles.adminIcon} onPress={() => navigation.navigate('AdminLogin')}
     >
         <MaterialCommunityIcons name='account-cog-outline' size={30} color='white' />

@@ -238,7 +238,7 @@ const Register = ({ navigation }) => {
 
   return (
     <ImageBackground 
-      source={require('../../../src/assets/2.png')} 
+      source={require('../../../src/assets/2.jpg')} 
       style={styles.background}
     >
       <View style={styles.container}>

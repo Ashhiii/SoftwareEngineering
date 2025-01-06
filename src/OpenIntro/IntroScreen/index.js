@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 export default function IntroScreen({ navigation }) {
   return (
     <ImageBackground
-      source={require('../../../src/assets/2.png')}
+      source={require('../../../src/assets/2.jpg')}
       style={styles.background}
       
     >
@@ -24,7 +24,7 @@ export default function IntroScreen({ navigation }) {
           activeDot={<View style={styles.activeDot} />}
         >
           <View style={styles.slide}>
-            <Image source={require('../../../src/assets/holding.png')} style={styles.headerImage} />
+            <Image source={require('../../../src/assets/holding.jpg')} style={styles.headerImage} />
             <View style={styles.smallImagesContainer}>
               <Image source={require('../../../src/assets/airpurifiers.jpg')} style={styles.smallImage1} />
               <Image source={require('../../../src/assets/man.jpg')} style={styles.smallImage2} />
@@ -39,7 +39,7 @@ export default function IntroScreen({ navigation }) {
           <View style={styles.slide}>
             <Image source={require('../../../src/assets/map.jpg')} style={styles.headerImage} />
             <View style={styles.smallImagesContainer}>
-              <Image source={require('../../../src/assets/mapicon.png')} style={styles.smallImage6} />
+              <Image source={require('../../../src/assets/mapicon.jpg')} style={styles.smallImage6} />
             </View>
             <View style={styles.circleDotRed} />
             <View style={styles.circleDotYellow} />

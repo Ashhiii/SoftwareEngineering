@@ -17,9 +17,9 @@ const IconGrid = () => {
         <View style={styles.emptySpace} />
         <View style={styles.icons}>
           <IconBox source={require('../../assets/recycles.jpg')} onPress={() => handleIconPress('RecycleScreen')} />
-          <IconBox source={require('../../assets/fort.png')} onPress={() => handleIconPress('TreeScreen')} />
+          <IconBox source={require('../../assets/fort.jpg')} onPress={() => handleIconPress('TreeScreen')} />
           <IconBox source={require('../../assets/pollution.jpg')} onPress={() => handleIconPress('PollutionScreen')} />
-          <IconBox source={require('../../assets/foot.png')} onPress={() => handleIconPress('FootScreen')} />
+          <IconBox source={require('../../assets/foot.jpg')} onPress={() => handleIconPress('FootScreen')} />
         </View>
       </View>
     </ScrollView>
