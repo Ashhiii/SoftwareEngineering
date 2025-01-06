@@ -93,7 +93,7 @@ const RecycleScreen = ({ navigation }) => {
     {
       title: 'RECYCLING',
       description: 'Recycle items to contribute to a greener planet.',
-      image: require('../../assets/waste2.jpg'),
+      image: require('../../assets/wastes2.jpg'),
       steps: [
         {
           stepTitle: 'Step 1: Know Your Local Recycling Guidelines',

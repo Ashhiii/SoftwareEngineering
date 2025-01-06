@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "EcoGuard",
-    "slug": "EcoGuard",
+    "slug": "ecoguard",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,16 +19,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.jepwerson.ecoguard"
+      "package": "com.jepjep.ecoguard"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "dd317690-6ce6-46fd-947d-d95ab5175f01"
+        "projectId": "7542d316-a85f-4e54-aac2-beb7a7b7887d"
       }
-    },
-    "owner": "jepwerson"
+    }
   }
 }

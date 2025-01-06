@@ -102,7 +102,7 @@ const PollutionScreen = ({ navigation }) => {
     {
       title: 'SOIL POLLUTION',
       description: 'Soil pollution is caused by the overuse of pesticides, industrial waste, and improper waste disposal.',
-      image: require('../../assets/pollution3.jpg'), 
+      image: require('../../assets/pollution5.jpg'), 
       steps: [
         {
           stepTitle: 'Step 1: Use Organic Fertilizers',

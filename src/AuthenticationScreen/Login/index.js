@@ -136,26 +136,6 @@ export default function LoginScreen({ navigation }) {
         >
           <Text style={styles.registerText}>Don't have an account? Sign up</Text>
         </TouchableOpacity>
-
-        {/* Separator */}
-        <View style={styles.separatorContainer}>
-          <View style={styles.separator} />
-          <Text style={styles.separatorText}>or</Text>
-          <View style={styles.separator} />
-        </View>
-
-        {/* Social login */}
-        <Text style={styles.socialText}>Sign in with</Text>
-
-        <View style={styles.socialContainer}>
-          <TouchableOpacity onPress={() => alert('Google Sign In')}>
-            <Image source={require('../../../src/assets/google.jpg')} style={styles.socialIcon} />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => alert('Facebook Sign In')}>
-            <Image source={require('../../../src/assets/facebook.jpg')} style={styles.socialIcons} />
-          </TouchableOpacity>
-        </View>
       </View>
     </ImageBackground>
   );
@@ -233,40 +213,5 @@ const styles = StyleSheet.create({
   registerText: {
     color: '#fff',
     textDecorationLine: 'underline',
-  },
-  separatorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  separator: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#fff',
-  },
-  separatorText: {
-    marginHorizontal: 10,
-    color: '#fff',
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '50%',
-    marginTop: 10,
-  },
-  socialIcon: {
-    width: 50,
-    height: 50,
-    marginHorizontal: 15,
-  },
-  socialIcons: {
-    width: 75,
-    height: 50,
-    marginHorizontal: -5,
-  },
-  socialText: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 10,
   },
 });
