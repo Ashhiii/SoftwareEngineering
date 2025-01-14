@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
-import Swiper from 'react-native-swiper';
+import { SwiperFlatList } from 'react-native-swiper-flatlist';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function IntroScreen({ navigation }) {
@@ -16,7 +16,7 @@ export default function IntroScreen({ navigation }) {
     </TouchableOpacity>
 
       <View style={styles.container}>
-        <Swiper
+        <SwiperFlatList
           style={styles.wrapper}
           autoplay={true}
           autoplayTimeout={3}
@@ -61,7 +61,7 @@ export default function IntroScreen({ navigation }) {
               <Text style={styles.welcomeText}>to your habits.</Text>
             </View>
           </View>
-        </Swiper>
+        </SwiperFlatList>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -99,11 +99,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  wrapper: {},
   slide: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 360,
   },
   headerImage: {
     width: '100%',
